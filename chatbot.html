@@ -1,0 +1,208 @@
+const API_KEY = "AIzaSyDGqsXRdj1RS5sutsq86rvPDksYwhJRl6w";
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NovaCore AI Chatbot</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#050505;
+    color:white;
+    font-family:Arial;
+}
+
+.header{
+    width:100%;
+    padding:20px;
+    text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    color:#00e5ff;
+    border-bottom:1px solid #00e5ff;
+    box-shadow:0 0 20px #00e5ff;
+}
+
+.chat-box{
+    height:75vh;
+    overflow-y:auto;
+    padding:20px;
+}
+
+.message{
+    padding:14px;
+    margin:12px 0;
+    border-radius:15px;
+    max-width:80%;
+    line-height:1.5;
+    font-size:17px;
+}
+
+.user{
+    background:#00e5ff;
+    color:black;
+    margin-left:auto;
+}
+
+.bot{
+    background:#111;
+    border:1px solid #00e5ff;
+    box-shadow:0 0 10px #00e5ff55;
+}
+
+.input-area{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    display:flex;
+    padding:10px;
+    background:#111;
+}
+
+input{
+    flex:1;
+    padding:15px;
+    border:none;
+    outline:none;
+    border-radius:12px;
+    font-size:16px;
+}
+
+button{
+    margin-left:10px;
+    padding:15px 20px;
+    border:none;
+    border-radius:12px;
+    background:#00e5ff;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+NovaCore AI
+</div>
+
+<div class="chat-box" id="chatBox"></div>
+
+<div class="input-area">
+
+<input 
+type="text" 
+id="userInput" 
+placeholder="Ask anything..."
+>
+
+<button onclick="sendMessage()">
+Send
+</button>
+
+</div>
+
+<script>
+
+const API_KEY = "এখানে তোমার API KEY বসাও";
+
+async function sendMessage(){
+
+    let input = document.getElementById("userInput");
+    let message = input.value;
+
+    if(message === "") return;
+
+    let chatBox = document.getElementById("chatBox");
+
+    // User message
+    chatBox.innerHTML += `
+    <div class="message user">
+        ${message}
+    </div>
+    `;
+
+    input.value = "";
+
+    // Loading
+    chatBox.innerHTML += `
+    <div class="message bot" id="loading">
+        Thinking...
+    </div>
+    `;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try{
+
+        const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                contents:[
+                    {
+                        parts:[
+                            {
+                                text: message
+                            }
+                        ]
+                    }
+                ]
+            })
+        });
+
+        const data = await response.json();
+
+        document.getElementById("loading").remove();
+
+        let botReply =
+        data.candidates[0].content.parts[0].text;
+
+        // Bot message
+        chatBox.innerHTML += `
+        <div class="message bot">
+            ${botReply}
+        </div>
+        `;
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+    }catch(error){
+
+        document.getElementById("loading").remove();
+
+        chatBox.innerHTML += `
+        <div class="message bot">
+            Error loading response
+        </div>
+        `;
+    }
+
+}
+
+</script>
+
+</body>
+  </html>
